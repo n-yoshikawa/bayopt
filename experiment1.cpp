@@ -15,7 +15,7 @@ double CDF(double x) {
 }
 
 int main(int argc, char** argv) {
-    /* parse input */
+    // parse input
     if(argc != 2) {
         std::cerr << "no csv is selected" << std::endl;
         std::exit(EXIT_FAILURE);
@@ -52,32 +52,49 @@ int main(int argc, char** argv) {
         t.push_back(row_t);
     }
 
+    // show experiment number
+    for(int ex=0; ex<155; ++ex) {
+        std::cout << ex+1 << ",";
+    }
+    std::cout << std::endl;
 
-    /* do bayopt */
-    std::vector<double> log;
-    for(int repeat=0; repeat<100; ++repeat) {
+    // random experiment
+    /*for(int seed=0; seed<1000; ++seed) {
+        std::vector<int> seq(X.size());
+        for(size_t i=0; i<X.size(); i++) seq[i] = i;
+
+        std::mt19937 mt(seed);
+
+        std::shuffle(seq.begin(), seq.end(), mt);
+        double current_best = t[seq[0]];
+
+        for(int ex=1; ex<155; ++ex) {
+            current_best = std::max(current_best, t[seq[ex]]);
+            std::cout << current_best << ",";
+        }
+        std::cout << std::endl;
+    }*/ 
+
+    // bayesian optimization
+    for(int seed=0; seed<1000; ++seed) {
         std::vector<int> isUsed(X.size(), 0);
         std::vector<std::vector<double>> X_done;
         std::vector<double> t_done;
 
-        std::random_device rnd;
-        std::mt19937 mt(rnd());
+        std::mt19937 mt(seed);
         std::uniform_int_distribution<int> sample(2, X.size()-1);  
 
+        // initial experiment
         double current_best = -std::numeric_limits<double>::max();
-        for(int i=0; i<20; ++i) {
-            int a = sample(mt);
-            if(isUsed[a] == 0) {
-                X_done.push_back(X[a]);
-                t_done.push_back(t[a]);
-                current_best = std::max(t[a], current_best);
-                isUsed[a] = 1;
-            }
-        }
+        int a = sample(mt);
+        X_done.push_back(X[a]);
+        t_done.push_back(t[a]);
+        current_best = t[a];
+        isUsed[a] = 1;
 
         GaussianProcess<std::vector<double>> GP(X_done, t_done);
 
-        for(int ex=0; ex<160; ++ex) {
+        for(int ex=0; ex<154; ++ex) {
             int bestIndex = -1;
             double best_candidate = -std::numeric_limits<double>::max();
             for(size_t i=0; i<X.size(); ++i) {
@@ -91,23 +108,10 @@ int main(int argc, char** argv) {
                 }
             }
             isUsed[bestIndex] = 1;
-            if(isUsed[0] == 1) {
-                std::cout << repeat << ": YFP found at " << ex << std::endl;
-                log.push_back(ex);
-                break;
-            }
-            if(bestIndex == -1) {
-                std::cout << "Abort." << std::endl;
-                break;
-            }
             GP.addData(X[bestIndex], t[bestIndex]);
             if(t[bestIndex] > current_best) current_best = t[bestIndex];
+            std::cout << current_best << ",";
         }
+        std::cout << std::endl;
     }
-    int min = *std::min_element(log.begin(), log.end());
-    int max = *std::max_element(log.begin(), log.end());
-    double mean = std::accumulate(log.begin(), log.end(), 0) / static_cast<double>(log.size());
-    double sq_sum = std::inner_product(log.begin(), log.end(), log.begin(), 0.0);
-    double sd = std::sqrt(sq_sum / log.size() - mean * mean);
-    std::cout << "mean: " << mean << " sd: " << sd << " min: " << min << " max: " << max << std::endl;
 }

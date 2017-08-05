@@ -32,9 +32,9 @@ class GaussianProcess
         N = X.size();
         Cn.resize(N, N);
         t_data.resize(N);
-        for (int i = 0; i < N; ++i) {
+        for (size_t i = 0; i < N; ++i) {
             t_data(i) = t_store[i];
-            for (int j = 0; j < N; ++j) {
+            for (size_t j = 0; j < N; ++j) {
                 Cn(i, j) = kernel(x_data[i], x_data[j]) + (i == j ? 1.0 / beta : 0);
             }
         }
@@ -49,9 +49,9 @@ class GaussianProcess
         t_store.push_back(t);
         Cn.resize(N, N);
         t_data.resize(N);
-        for (int i = 0; i < N; ++i) {
+        for (size_t i = 0; i < N; ++i) {
             t_data(i) = t_store[i];
-            for (int j = 0; j < N; ++j) {
+            for (size_t j = 0; j < N; ++j) {
                 Cn(i, j) = kernel(x_data[i], x_data[j]) + (i == j ? 1.0 / beta : 0);
             }
         }
@@ -63,7 +63,7 @@ class GaussianProcess
     muAndSigma predict(T x_pred)
     {
         Eigen::VectorXd k(N);
-        for (int i = 0; i < N; ++i)
+        for (size_t i = 0; i < N; ++i)
         {
             k(i) = kernel(x_data[i], x_pred);
         }
