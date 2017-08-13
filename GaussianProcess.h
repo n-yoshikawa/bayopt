@@ -19,6 +19,7 @@ class GaussianProcess
     Eigen::MatrixXd L; 
     Eigen::VectorXd alpha;
 
+
     size_t N;
     const double beta = 30.0;
 
